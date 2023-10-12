@@ -83,7 +83,7 @@
     comp.style.backgroundColor = "#D74938";
     comp.style.color = "white";
     
-    document.title = "越前市国高地区 地域安全マップ「キッズセーフ」";
+    document.title = "福井市棗地区 地域安全マップ「キッズセーフ」";
 
     const header = document.createElement("header");
     header.style.height = "56px";
@@ -115,7 +115,7 @@
     menuButton.appendChild(menuIconImage);
 
     const subtitle = document.createElement("span");
-    subtitle.textContent = "越前市国高地区 地域安全マップ";
+    subtitle.textContent = "福井市棗地区 地域安全マップ";
     subtitle.style.fontSize = "16px";
     subtitle.style.lineHeight = "1";
     subtitle.style.gridArea = "subtitle";
@@ -274,168 +274,22 @@
     const layers = [];
 
     // 危険箇所
-    const url = "./kidssafe.csv";
+    const url = "./index.csv";
     const data = CSV.toJSON(await CSV.fetch(url));
-    const list = [];
     for (const d of data) {
-      const d2 = CSV.toJSON(await CSV.fetch("kidssafe/" + d.name + ".csv"));
+      const list = [];
+      const d2 = CSV.toJSON(await CSV.fetch(d.fn));
       d2.forEach((n) => {
-        n["町名"] = d.name;
+        //n["町名"] = d.name;
         list.push(n);
       });
+      console.log(list);
+      layers.push([d.name, await showIcons(list, d.icon)]);
     }
-    console.log(list);
-    layers.push(["危険箇所2020", await showIcons(list, "danger.png")]);
-
-    // 危険箇所2021
-    const list3 = CSV.toJSON(await CSV.fetch("./kidssafe2021.csv"));layers.push(["危険箇所2021",await showIcons(list3, "danger2021.png"),]);
-
-    // 不審者情報
-    /*
-    try {
-      const listfusinsya = CSV.toJSON(await CSV.fetch("https://code4fukui.github.io/kunitaka/fusinnsya.csv"));
-      layers.push(["不審者情報",await showIcons(listfusinsya,"https://code4fukui.github.io/kunitaka/fusinsya.png"),]);
-    } catch (e) {
-      console.log("不審者情報でエラー: " + e);
-    }
-    */
-
-    // ドローン写真
-    const list4 = CSV.toJSON(await CSV.fetch("https://code4fukui.github.io/vr-fukui/vr-kunitaka.csv"));
-    layers.push(["ドローン写真", await showIcons(list4, "./drone_icon.png")]);
-
-    // 360度カメラ画像
-    {
-      const info = {
-        url: "./cam360.csv",
-        name: "360度カメラ",
-        icon: "cam360.png",
-      };
-      const data = CSV.toJSON(await CSV.fetch(info.url));
-      //console.log(data);
-      layers.push([
-        info.name,
-        await showIcons(data, info.icon),
-      ]);
-    }
-    // VRスポット
-    {
-      const info = {
-        url: "./vr_spot.csv",
-        name: "VRスポット",
-        icon: "vr.png",
-      };
-      const data = CSV.toJSON(await CSV.fetch(info.url));
-      //console.log(data);
-      layers.push([
-        info.name,
-        await showIcons(data, info.icon),
-      ]);
-    }
-    // 防犯カメラ
-    {
-      const info = {
-        url: "./bohan_camera.csv",
-        name: "防犯カメラ",
-        icon: "bohan_camera.png",
-      };
-      const data = CSV.toJSON(await CSV.fetch(info.url));
-      //console.log(data);
-      layers.push([
-        info.name,
-        await showIcons(data, info.icon),
-      ]);
-    }
-
-    // こども110番の家
-    const list2 = CSV.toJSON(await CSV.fetch("./house110.csv"));
-    layers.push(["こども110番の家",await showIcons(list2, "house110_icon.png"),]);
-
-    // 街灯
-    const listLight = CSV.toJSON(await CSV.fetch("./streetlight/k2.csv"));
-    layers.push(["街灯", await showPoints(listLight, "#fa0")]);
 
     if (lls.length) {
       map.fitBounds(lls);
     }
-
-    //通学路 geojson
-    const roadLayer = L.layerGroup();
-    const geojsonurl1 = "./schoolzone1.geojson";
-    console.log(geojsonurl1);
-    const geojson1 = await (await fetch(geojsonurl1)).json();
-    console.log(geojson1);
-    const schoolzone1 = L.geoJson(geojson1, {
-      style: () => {
-        return {
-          color: "#ff0000",
-          opacity: 1,
-          weight: 5,
-        };
-      },
-    });
-    const geojsonurl2 = "./schoolzone2.geojson";
-    console.log(geojsonurl2);
-    const geojson2 = await (await fetch(geojsonurl2)).json();
-    console.log(geojson2);
-    const schoolzone2 = L.geoJson(geojson2, {
-      style: () => {
-        return {
-          color: "#00ff00",
-          opacity: 1,
-          weight: 5,
-        };
-      },
-    });
-    roadLayer.addLayer(schoolzone1);
-    roadLayer.addLayer(schoolzone2);
-    roadLayer.addTo(map);
-    layers.push(["通学路", roadLayer]);
-    
-    //グリーンベルト
-    // layers.push(["グリーンベルト", schoolzone2]);
-
-    //事故地点
-    const accidneturl = "accidents_kuknitaka_geo3x3.csv";
-    const accidents = CSV.toJSON(await CSV.fetch(accidneturl));
-    layers.push([
-      "事故地点",
-      await showIcons(accidents, "tobidashi_kodomo.png"),
-    ]);
-
-    // テレマティクス
-    {
-      const urls = [
-        "aioi_events.csv",
-        "aioi_events_additional.csv",
-      ];
-      const data = [];
-      for (const url of urls) {
-        const data0 = CSV.toJSON(await CSV.fetch(url));
-        const data2 = data0.map(d => ({ name: d.イベント, 発生件数: d.発生件数, lat: d.緯度, lng: d.経度 })).filter(d => d.lat || d.lng);
-        data2.forEach(d => data.push(d));
-      }
-      const names = [
-        ["急加速", "speed"],
-        ["急ブレーキ", "brake"],
-        ["前方衝突警告", "aioi_3"],
-        ["急ハンドル", "aioi_4"],
-        ["ふらつき", "aioi_5"],
-        ["車線逸脱警告", "aioi_6"],
-        ["速度超過", "aioi_7"],
-        ["衝突", "aioi_8"],
-      ];
-      for (let i = 0; i < names.length; i++) {
-        const name = names[i][0];
-        const icon = names[i][1];
-        const data3 = data.filter(d => d.name == name);
-        layers.push([
-          "テレマティクスデータ " + name,
-          await showIcons(data3, icon + ".png", false),
-        ]);
-      }
-    }
-
 
     // for (const point of accidents){
     //     const marker = L.icon([parseFloat(point.緯度), parseFloat(point.経度)],
@@ -448,11 +302,7 @@
       for (const layer of layers) {
         const chk = new CheckBox(layer[0]);
         drawerItems.appendChild(chk);
-        if (!layer[0].startsWith("テレマティクスデータ")) {
-          chk.checked = true;
-        } else {
-          chk.checked = false;
-        }
+        chk.checked = true;
         if (!chk.checked) {
           map.removeLayer(layer[1]);
         }
@@ -492,20 +342,20 @@
 
     // footer
     const links = [
-      { text: "データ編集や閲覧はGitHubで", url: "https://github.com/code4fukui/kunitaka/tree/main/kidssafe" },
+      { text: "データ編集や閲覧はGitHubで", url: "https://github.com/code4fukui/kidssafe-natsume/" },
       { text: "アイコン（きけん、急ブレーキ、急加速） CC BY okiku.graphic", url: "https://www.instagram.com/okame.graphic/" },
-      { text: "アイコン（その他） by いらすとや", url: "https://www.irasutoya.com/" },
-      { text: "下記データは、オープンデータライセンスでご利用いただけます", url: "https://github.com/code4fukui/opendata-license/" },
-      { text: "テレマティクスオープンデータ by あいおいニッセイ同和損保", url: "https://www.aioinissaydowa.co.jp/" },
-      { text: "地域安全オープンデータ by 国高地区自治振興会", url: "https://www.city.echizen.lg.jp/office/010/130030/kunitaka.html" },
-      { text: "街灯オープンデータ by 越前市", url: "http://www.city.echizen.lg.jp/index.html" },
+      //{ text: "アイコン（その他） by いらすとや", url: "https://www.irasutoya.com/" },
+      //{ text: "下記データは、オープンデータライセンスでご利用いただけます", url: "https://github.com/code4fukui/opendata-license/" },
+      //{} text: "テレマティクスオープンデータ by あいおいニッセイ同和損保", url: "https://www.aioinissaydowa.co.jp/" },
+      //{ text: "地域安全オープンデータ by 棗地区", url: "https://www.city.echizen.lg.jp/office/010/130030/kunitaka.html" },
+      //{ text: "街灯オープンデータ by 越前市", url: "http://www.city.echizen.lg.jp/index.html" },
     ];
     for (const link of links) {
       const a = document.createElement("a");
       a.style.display = "block";
       a.style.textAlign = "left";
       a.textContent = link.text;
-      a.href = link.url; // "https://github.com/code4fukui/kunitaka/";
+      a.href = link.url;
       drawerItems.appendChild(a);
     }
 
