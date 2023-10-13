@@ -1,4 +1,4 @@
-<meta charset="utf-8" />
+<!DOCTYPE html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><link rel="icon" href="data:">
 <script type="module">
   import { style } from "https://js.sabae.cc/stdom.js";
   import L from "https://code4sabae.github.io/leaflet-mjs/leaflet.mjs";
@@ -316,19 +316,21 @@
       }
     }
 
-    // 現在地を取得してピンを打つ
-    const currentPositionMarker = L.marker([36, 140], {title: "現在地"}).addTo(map).bindPopup("現在地");
-    navigator.geolocation.getCurrentPosition((position) => {
-      const currentLoc = [position.coords.latitude, position.coords.longitude];
-      currentPositionMarker.setLatLng(currentLoc);
-    })
-
     // 現在地を監視してピン/マップを動かす
     const watchGPS = new CheckBox("現在地追従モード")
     let watchPosition;
-    watchGPS.checked = false
+    watchGPS.checked = false;
+    let currentPositionMarker = null;
     watchGPS.onchange = () => {
       if (watchGPS.checked) {
+        // 現在地を取得してピンを打つ
+        navigator.geolocation.getCurrentPosition((position) => {
+          if (currentPositionMarker) {
+            currentPositionMarker.removeFrom(map);
+          }
+          const currentLoc = [position.coords.latitude, position.coords.longitude];
+          currentPositionMarker = L.marker(currentLoc, { title: "現在地" }).addTo(map).bindPopup("現在地");
+        });
         watchPosition = navigator.geolocation.watchPosition((position) => {
           const currentLoc = [position.coords.latitude, position.coords.longitude];
           currentPositionMarker.setLatLng(currentLoc);
@@ -336,6 +338,9 @@
         });
       } else {
         navigator.geolocation.clearWatch(watchPosition);
+        if (currentPositionMarker) {
+          currentPositionMarker.removeFrom(map);
+        }
       }
     };
     drawerItems.appendChild(watchGPS);
