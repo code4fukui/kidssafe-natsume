@@ -1,5 +1,7 @@
 # kidssafe-natsume
 
+> 日本語のREADMEはこちらです: [README.ja.md](README.ja.md)
+
 A civic tech project for a community safety map for kids in the Natsume district of Fukui City, Japan.
 
 ## Demo
