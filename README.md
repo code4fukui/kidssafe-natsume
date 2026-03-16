@@ -24,4 +24,4 @@ https://code4fukui.github.io/kidssafe-natsume/
 The map data is stored in CSV files, such as `house100.csv` and `kidssafe/田ノ頭町.csv`.
 
 ## License
-MIT License
+MIT License — see [LICENSE](LICENSE).
